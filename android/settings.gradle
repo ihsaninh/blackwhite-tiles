@@ -1,0 +1,3 @@
+rootProject.name = 'bgsd2'
+
+include ':app'
