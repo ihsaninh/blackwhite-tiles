@@ -23,7 +23,7 @@ export default class App extends Component {
 
   constructor(props){
     super(props)
-    this.totalCount = 64
+    this.totalColumn = 64
     this.availableIndexes = []
     
     this.crosswords = []
@@ -45,24 +45,32 @@ export default class App extends Component {
       .then((res) => {
         this.availableIndexes = res.data.data.availableIndexes
         this.setState({answers:res.data.data.answers})
-        console.log(this.state.answers);
+        // console.log(this.state.answers);
         
         this.getQuestions()
-        for(let i = 0; i < this.totalCount; i++){
+        for(let i = 0; i < this.totalColumn; i++){
           for(let j = 0; j < this.availableIndexes.length; j++){
-            // console.log(this.state.answers[j].indexes[0]);
-            // console.log(this.state.answers[j].number);
             for(let k = 0; k < this.availableIndexes[j].length; k++){
-              
-              console.log(this.availableIndexes[j][0]);
+              let number = ''
+              if( k != 0 ){
+                number = ""
+              }else{
+                number = this.state.answers[j].number
+              }
                 this.crosswords[this.availableIndexes[j][k]]= {tiles:(
                 <View>
-                  <Text style={{position:"absolute", top:-2, left:2, zIndex:1}}>{this.state.answers[j].indexes[0] == this.availableIndexes[j][k] ? this.state.answers[j].number : null}</Text>
-                  <TextInput style={styles.tiles} value={this.state.input[this.availableIndexes[j][k].toUpperCase()]} onChangeText={(val)=>{
-                    let a = this.state.input.slice()
-                    a[this.availableIndexes[j][k]] = val.toUpperCase()
-                    this.setState({input:a})
-                  }} textAlign='center' maxLength={1} autoCapitalize='characters' 
+                  <Text style={{position:"absolute", top:-2, left:2, zIndex:1}}>{number}</Text>
+                  <TextInput 
+                    style={styles.tiles} 
+                    value={this.state.input[this.availableIndexes[j][k].toUpperCase()]} 
+                    onChangeText={(val)=>{
+                      let a = this.state.input.slice()
+                      a[this.availableIndexes[j][k]] = val.toUpperCase()
+                      this.setState({input:a})
+                    }} 
+                    textAlign='center' 
+                    maxLength={1} 
+                    autoCapitalize='characters' 
                   />
                 </View>
                 )}
@@ -72,35 +80,43 @@ export default class App extends Component {
               }
             }
           }
+        }).catch((err) => {
+          alert(err.response.message)
         })
+        }
+
+        handleSubmit(){
+          axios.patch(`http://192.168.0.24:3333/crosswords/2/answers`, {
+            answers: this.state.input
+          })
+            .then((res) => {
+              alert(res.data.message)
+            })
+            .catch((err) => {
+              alert(err.response.message)
+            })
         }
         
         render(){
           return(
             <View style={{flex:1}}>
-      <FlatList
-      style={{flex:1}}
-        data={this.crosswords}
-        keyExtractor={(item,index) => {return index.toString()}}
-        renderItem={({item})=> (
-          <View style={{flex:1,backgroundColor:"black"}}>
-            {item.tiles}
-          </View>
-        ) }
-        numColumns={Math.sqrt(this.totalCount)}
-      />
-      {/* {console.log(this.state.input)} */}
-      {/* {this.crosswords[0]} */}
-      {/* {this.crosswords.map(s=>(
-        <View>{s}</View>
-      ))} */}
-      {/* {console.log(this.crosswords)} */}
-      <TouchableOpacity onPress={()=> alert(this.state.input)}>
-        <View>
-          <Text>SUBMIT</Text>
-        </View>
-      </TouchableOpacity>
-    </View>
+              <FlatList
+                style={{flex:1}}
+                data={this.crosswords}
+                keyExtractor={(item,index) => {return index.toString()}}
+                renderItem={({item})=> (
+                  <View style={{flex:1,backgroundColor:"black"}}>
+                    {item.tiles}
+                  </View>
+                ) }
+                numColumns={Math.sqrt(this.totalColumn)}
+              />
+              <TouchableOpacity onPress={()=> this.handleSubmit()}>
+                <View>
+                  <Text>SUBMIT</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
     )
   }
 }
