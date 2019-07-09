@@ -8,6 +8,7 @@
 
 import React, {Component} from 'react';
 import {Platform, StyleSheet, Text, View, TextInput, FlatList, TouchableOpacity} from 'react-native';
+import axios from 'axios';
 
 const instructions = Platform.select({
   ios: 'Press Cmd+R to reload,\n' + 'Cmd+D or shake for dev menu',
@@ -17,61 +18,83 @@ const instructions = Platform.select({
 });
 
 export default class App extends Component {
+
+ 
+
   constructor(props){
     super(props)
-    this.a = 64
-    this.b = [[1,5,7,3,8,12,23,10,24,25,30],[44,33,21,45,46,47,57,54,35,60,63]]
+    this.totalCount = 64
+    this.availableIndexes = []
     
-    this.c = []
+    this.crosswords = []
     this.state = {
-      input: []
+      input: [],
+      answers: []
     }
   }
 
+  getQuestions(){
+  }
+  
   componentWillMount(){
     this.renderTiles()
   }
-
-  renderTiles(){
-    for(let i = 0; i < this.a; i++){
-      for(let j = 0; j < this.b.length; j++){
-        for(let k = 0; k < this.b[j].length; k++){
-          // if(this.b[j][k]==answer.indexes[0]){
-          //   {number= answer.number}
-          // }
-          this.c[this.b[j][k]]= {tiles:(<TextInput style={styles.tiles} value={this.state.input[this.b[j][k]]} onChangeText={(val)=>{
-            let a = this.state.input.slice()
-            a[this.b[j][k]] = val
-            this.setState({input:a})
-          }} textAlign='center' maxLength={1} autoCapitalize='characters' />)}
-        }
-        if(typeof this.c[i]=='undefined'){
-          this.c[i]= {tiles:(<View style={{backgroundColor:"black"}} />)}
-        }
-        }
-    }
-  }
   
-  render(){
-    return(
-      <View style={{flex:1}}>
+  renderTiles(){
+    axios.get(`http://192.168.0.24:3333/crosswords/1/answers`)
+      .then((res) => {
+        this.availableIndexes = res.data.data.availableIndexes
+        this.setState({answers:res.data.data.answers})
+        console.log(this.state.answers);
+        
+        this.getQuestions()
+        for(let i = 0; i < this.totalCount; i++){
+          for(let j = 0; j < this.availableIndexes.length; j++){
+            // console.log(this.state.answers[j].indexes[0]);
+            // console.log(this.state.answers[j].number);
+            for(let k = 0; k < this.availableIndexes[j].length; k++){
+              
+              console.log(this.availableIndexes[j][0]);
+                this.crosswords[this.availableIndexes[j][k]]= {tiles:(
+                <View>
+                  <Text style={{position:"absolute", top:-2, left:2, zIndex:1}}>{this.state.answers[j].indexes[0] == this.availableIndexes[j][k] ? this.state.answers[j].number : null}</Text>
+                  <TextInput style={styles.tiles} value={this.state.input[this.availableIndexes[j][k].toUpperCase()]} onChangeText={(val)=>{
+                    let a = this.state.input.slice()
+                    a[this.availableIndexes[j][k]] = val.toUpperCase()
+                    this.setState({input:a})
+                  }} textAlign='center' maxLength={1} autoCapitalize='characters' 
+                  />
+                </View>
+                )}
+              }
+              if(typeof this.crosswords[i]=='undefined'){
+                this.crosswords[i]= {tiles:(<View style={{backgroundColor:"black"}} />)}
+              }
+            }
+          }
+        })
+        }
+        
+        render(){
+          return(
+            <View style={{flex:1}}>
       <FlatList
-        style={{flex:1}}
-        data={this.c}
+      style={{flex:1}}
+        data={this.crosswords}
         keyExtractor={(item,index) => {return index.toString()}}
         renderItem={({item})=> (
           <View style={{flex:1,backgroundColor:"black"}}>
             {item.tiles}
           </View>
         ) }
-        numColumns={Math.sqrt(this.a)}
+        numColumns={Math.sqrt(this.totalCount)}
       />
-      {console.log(this.state.input)}
-      {/* {this.c[0]} */}
-      {/* {this.c.map(s=>(
+      {/* {console.log(this.state.input)} */}
+      {/* {this.crosswords[0]} */}
+      {/* {this.crosswords.map(s=>(
         <View>{s}</View>
       ))} */}
-      {/* {console.log(this.c)} */}
+      {/* {console.log(this.crosswords)} */}
       <TouchableOpacity onPress={()=> alert(this.state.input)}>
         <View>
           <Text>SUBMIT</Text>
@@ -85,7 +108,8 @@ export default class App extends Component {
 const styles = StyleSheet.create({
   tiles:{
       borderWidth:0.5,
-      backgroundColor: "#FFF"
+      backgroundColor: "#FFF",
+      textTransform: "uppercase"
     },
   container: {
     flex: 1,
