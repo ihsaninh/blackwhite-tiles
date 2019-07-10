@@ -41,13 +41,25 @@ export default class App extends Component {
   }
   
   renderTiles(){
-    axios.get(`http://192.168.0.24:3333/crosswords/1/answers`)
+    axios.get(`http://192.168.0.24:3333/crosswords/2/answers`)
       .then((res) => {
         this.availableIndexes = res.data.data.availableIndexes
         this.setState({answers:res.data.data.answers})
         // console.log(this.state.answers);
-        
-        this.getQuestions()
+
+        // is_clue condition
+
+        this.state.answers.map( (answer, index) => {
+          if(this.state.answers[index].is_clue){
+            let splittedAnswer = this.state.answers[index].answer.split('')
+            const answerIndexes = this.state.answers[index].indexes
+            for(let l = 0; l < answerIndexes.length; l++){
+              let a = this.state.input.slice()
+              a[answerIndexes[l]] = splittedAnswer[l]
+              this.setState({input:a})
+            }
+          }
+        } )
         for(let i = 0; i < this.totalColumn; i++){
           for(let j = 0; j < this.availableIndexes.length; j++){
             for(let k = 0; k < this.availableIndexes[j].length; k++){
@@ -57,35 +69,23 @@ export default class App extends Component {
               }else{
                 number = this.state.answers[j].number
               }
-
-              // is_clue condition
-
-              if(this.state.answers[j].is_clue){
-                let splittedAnswer = this.state.answers[j].answer.split('')
-                const answerIndexes = this.state.answers[j].indexes
-                for(let l = 0; l < answerIndexes.length; l++){
-                  let a = this.state.input.slice()
-                  a[answerIndexes[l]] = splittedAnswer[l]
-                  this.setState({input:a})
-                }
-              }
-              
-                this.crosswords[this.availableIndexes[j][k]]= {tiles:(
-                <View>
-                  <Text style={{position:"absolute", top:-2, left:2, zIndex:1}}>{number}</Text>
-                  <TextInput 
-                    style={styles.tiles} 
-                    value={this.state.input[this.availableIndexes[j][k].toUpperCase()]} 
-                    onChangeText={(val)=>{
-                      let a = this.state.input.slice()
-                      a[this.availableIndexes[j][k]] = val.toUpperCase()
-                      this.setState({input:a})
-                    }} 
-                    textAlign='center' 
-                    maxLength={1} 
-                    autoCapitalize='characters' 
-                  />
-                </View>
+              this.crosswords[this.availableIndexes[j][k]]= {
+                tiles:(
+                  <View>
+                    <Text style={{position:"absolute", top:-2, left:2, zIndex:1}}>{number}</Text>
+                    <TextInput 
+                      style={styles.tiles} 
+                      value={this.state.input[this.availableIndexes[j][k].toUpperCase()]} 
+                      onChangeText={(val)=>{
+                        let a = this.state.input.slice()
+                        a[this.availableIndexes[j][k]] = val.toUpperCase()
+                        this.setState({input:a})
+                      }} 
+                      textAlign='center' 
+                      maxLength={1} 
+                      autoCapitalize='characters' 
+                    />
+                  </View>
                 )}
               }
               if(typeof this.crosswords[i]=='undefined'){
