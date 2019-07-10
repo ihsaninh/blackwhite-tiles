@@ -57,6 +57,19 @@ export default class App extends Component {
               }else{
                 number = this.state.answers[j].number
               }
+
+              // is_clue condition
+
+              if(this.state.answers[j].is_clue){
+                let splittedAnswer = this.state.answers[j].answer.split('')
+                const answerIndexes = this.state.answers[j].indexes
+                for(let l = 0; l < answerIndexes.length; l++){
+                  let a = this.state.input.slice()
+                  a[answerIndexes[l]] = splittedAnswer[l]
+                  this.setState({input:a})
+                }
+              }
+              
                 this.crosswords[this.availableIndexes[j][k]]= {tiles:(
                 <View>
                   <Text style={{position:"absolute", top:-2, left:2, zIndex:1}}>{number}</Text>
@@ -85,8 +98,10 @@ export default class App extends Component {
         })
         }
 
+        // handle submit
+
         handleSubmit(){
-          axios.patch(`http://192.168.0.24:3333/crosswords/2/answers`, {
+          axios.patch(`http://192.168.0.24:3333/crosswords/1/answers`, {
             answers: this.state.input
           })
             .then((res) => {
